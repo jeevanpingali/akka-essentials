@@ -14,20 +14,38 @@ object ActorCapabilities2 extends App {
 
   val system = ActorSystem("ActorCapabilitiesDemo2")
 
-  case class IncrementCount(number: Int)
-  case class DecrementCount(number: Int)
-  case class PrintCounter()
 
-  class MyCounter extends Actor {
+  // DOMAIN of the Counter
+  object Counter {
+    case object Increment
+    case object Decrement
+    case object Print
+  }
+  class Counter extends Actor {
+    import Counter._
     var count = 0
+
     override def receive: Receive = {
-      case IncrementCount(number) => count += number
-      case DecrementCount(number) => count -= number
-      case PrintCounter => println(s"Current count is: $count")
+      case Increment => count += 1
+      case Decrement => count -= 1
+      case Print => println(s"[counter] My current count is: $count")
     }
   }
 
-  class MyBank extends Actor {
+  import Counter._
+  val counter = system.actorOf(Props[Counter], "myCounter")
+  (1 to 5).foreach(_ => counter ! Increment)
+  (1 to 3).foreach(_ => counter ! Decrement)
+  counter ! Print
+
+  object BankAccount {
+    case class Deposit(amount: Double)
+    case class Withdraw(amount: Double)
+    case object Statement
+  }
+
+  class BankAccount extends Actor {
+    import BankAccount._
     var funds: Double = 0.0d
 
     override def receive: Receive = {
@@ -52,17 +70,8 @@ object ActorCapabilities2 extends App {
     }
   }
 
-
-  case class Deposit(amount: Double)
-
-  case class Withdraw(amount: Double)
-
-  val counter = system.actorOf(Props[MyCounter], "myCounter")
-  counter ! IncrementCount(25)
-  counter ! DecrementCount(20)
-  counter ! PrintCounter
-
-  val bank = system.actorOf(Props[MyBank], "myBank")
+  import BankAccount._
+  val bank = system.actorOf(Props[BankAccount], "myBank")
   bank ! Deposit(1000.50)
   bank ! Withdraw(1000.50)
 
