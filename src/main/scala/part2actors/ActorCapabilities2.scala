@@ -1,6 +1,8 @@
 package part2actors
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import part2actors.ActorCapabilities2.BankAccount.{Deposit, Statement, Withdraw}
+import part2actors.ActorCapabilities2.Person.LiveTheLife
 
 object ActorCapabilities2 extends App {
   /**
@@ -42,6 +44,9 @@ object ActorCapabilities2 extends App {
     case class Deposit(amount: Double)
     case class Withdraw(amount: Double)
     case object Statement
+
+    case class TransactionSuccess(message: String)
+    case class TransactionFailure(reason: String)
   }
 
   class BankAccount extends Actor {
@@ -53,29 +58,48 @@ object ActorCapabilities2 extends App {
         if (amount > 0) {
           funds += amount
           // send success message
-          println(s"Amount $amount deposited, now the funds are $funds")
+          println(s"Amount $amount successfully deposited, now the funds are $funds")
+          sender() ! TransactionSuccess(s"Amount $amount successfully deposited, now the funds are $funds")
         } else {
           // send failure message
+          sender() ! TransactionFailure("Invalid deposit amount")
         }
       }
       case Withdraw(amount) => {
         if (funds >= amount & amount > 0) {
           funds -= amount
           // send success message
-          println(s"Amount $amount withdrawn, now the funds are $funds")
+          println(s"Amount $amount successfully withdrawn, now the funds are $funds")
+          sender() ! TransactionSuccess(s"Amount $amount successfully withdrawn, now the funds are $funds")
         } else {
           // send failure message
+          sender() ! TransactionFailure("Invalid withdraw amount")
         }
       }
+      case Statement => sender() ! s"Your balance is $funds"
+    }
+  }
+
+  object Person {
+    case class LiveTheLife(account: ActorRef)
+  }
+  class Person extends Actor {
+    import Person._
+
+    override def receive: Receive = {
+      case LiveTheLife(account) =>
+        account ! Deposit(10000)
+        account ! Withdraw(90000)
+        account ! Withdraw(500)
+        account ! Statement
+      case message => println(message.toString)
     }
   }
 
   import BankAccount._
-  val bank = system.actorOf(Props[BankAccount], "myBank")
-  bank ! Deposit(1000.50)
-  bank ! Withdraw(1000.50)
-
-  //  Thread.sleep(1000 * 5)
+  val account = system.actorOf(Props[BankAccount], "myBank")
+  val person = system.actorOf(Props[Person], "jeevan")
+  person ! LiveTheLife(account)
 
   system.terminate()
 }
