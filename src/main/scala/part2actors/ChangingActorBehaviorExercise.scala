@@ -16,7 +16,7 @@ object ChangingActorBehaviorExercise extends App {
 
     def requestReceived(currentCount: Int): Receive = {
       case Increment => context.become(requestReceived(currentCount + 1), false)
-      case Decrement => context.become(requestReceived(currentCount - 1), false)
+      case Decrement => context.unbecome
       case Print => println(s"Current count: $currentCount")
     }
   }
