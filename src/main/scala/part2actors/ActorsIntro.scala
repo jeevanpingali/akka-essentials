@@ -13,7 +13,7 @@ object ActorsIntro extends App {
     var totalWords: Int = 0
 
     // behavior
-    def receive: PartialFunction[Any, Unit] = {
+    def receive: Receive = {
       case message: String =>
         println(s"[word counter] I have received: $message")
         totalWords += message.split(" ").length
@@ -29,4 +29,23 @@ object ActorsIntro extends App {
   wordCounter ! "I am learning Akka and it's pretty damn cool!" // "tell"
   anotherWordCounter ! "A different message"
   // asynchronous
+
+  object Person {
+    def props(name: String) = Props(new Person(name))
+  }
+  class Person(name: String) extends Actor {
+    override def receive: Receive = {
+      case "hi" => println(s"Hi, my name is $name")
+      case _ =>
+    }
+  }
+
+  val person1 = actorSystem.actorOf(Props(new Person("Bob 1"))) // Not a best practice
+  val person2 = actorSystem.actorOf(Person.props("Bob 2")) // Best practice
+
+  person1 ! "hi"
+  person2 ! "hi"
+
+  Thread.sleep(1000 * 10)
+  actorSystem.terminate()
 }
