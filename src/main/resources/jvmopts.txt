@@ -1,7 +1,7 @@
 -server
 -Xms1024m
 -Xmx1024m
--XX:ReservedCodeCacheSize=512m
+-XX:ReservedCodeCacheSize=256m
 -XX:+UseConcMarkSweepGC
 -XX:SoftRefLRUPolicyMSPerMB=50
 -XX:CICompilerCount=2
