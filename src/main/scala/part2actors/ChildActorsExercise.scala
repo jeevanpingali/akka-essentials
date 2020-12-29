@@ -16,8 +16,8 @@ object ChildActorsExercise extends App {
     override def receive: Receive = {
       case Initialize(count) =>
         println(s"${self.path} initializing with count: $count")
-        (0 to count).foreach(n => {
-          context.actorOf(Props[WordCounterWorker], "worker" + n.toString())
+        (0 until count).foreach(n => {
+          context.actorOf(Props[WordCounterWorker], "worker" + n)
         })
       case WordCountTask(text) => {
         if(lastCount < 10) {
@@ -25,7 +25,7 @@ object ChildActorsExercise extends App {
         } else if(lastCount == 10) {
           lastCount = 0
         }
-        val workerRef = context.actorSelection("/ChildActorsExercise/user/master/worker" + lastCount)
+        val workerRef = context.actorSelection("/user/master/worker" + lastCount)
         workerRef ! text
       }
       case WordCountReply(count) =>
@@ -58,7 +58,11 @@ object ChildActorsExercise extends App {
   val master = system.actorOf(Props[WordCounterMaster], "master")
   import WordCounterMaster._
   master ! Initialize(10)
-  master ! WordCountTask("akka is awesome")
+  Thread.sleep(1000)
+  (0 to 4).foreach(_ => {
+    master ! WordCountTask("akka is awesome for sure")
+    Thread.sleep(500)
+  })
 
   system.terminate()
 }
