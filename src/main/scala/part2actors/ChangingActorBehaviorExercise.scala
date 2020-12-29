@@ -34,7 +34,6 @@ object ChangingActorBehaviorExercise extends App {
   /**
    * Exercise 2
    */
-/*
 
   case class Vote(candidate: String)
   case object VoteStatusRequest
@@ -65,7 +64,6 @@ object ChangingActorBehaviorExercise extends App {
   daniel ! Vote("Ronald")
   val voteAggregator = system.actorOf(Props[VoteAggregator])
   voteAggregator ! AggregateVotes(Set(alice, bob, charlie, daniel))
-*/
 
   /**
    * Print the status of votes, a map of candidates and the number of votes received
