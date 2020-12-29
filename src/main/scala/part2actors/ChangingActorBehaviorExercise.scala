@@ -39,10 +39,13 @@ object ChangingActorBehaviorExercise extends App {
   case object VoteStatusRequest
   case class VoteStatusReply(candidate: Option[String])
   class Citizen extends Actor {
-    var candidate: Option[String] = None
     override def receive: Receive = {
-      case Vote(c) => candidate = Some(c)
-      case VoteStatusRequest => sender() ! VoteStatusReply(candidate)
+      case Vote(c) => context.become(voted(c))
+      case VoteStatusRequest => sender() ! VoteStatusReply(None)
+    }
+
+    def voted(candidate: String): Receive = {
+      case VoteStatusRequest => sender() ! VoteStatusReply(Some(candidate))
     }
   }
 
