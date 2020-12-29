@@ -51,24 +51,29 @@ object ChangingActorBehaviorExercise extends App {
 
   case class AggregateVotes(citizens: Set[ActorRef])
   class VoteAggregator extends Actor {
-    var stillWaiting: Set[ActorRef] = Set()
-    var currentStats: Map[String, Int] = Map()
     override def receive: Receive = {
+      awaitingCommand
+    }
+
+    def awaitingCommand: Receive = {
       case AggregateVotes(citizens) => {
-        stillWaiting = citizens
         citizens.foreach(citizenRef => citizenRef ! VoteStatusRequest)
+        context.become(awaitingStatuses(citizens, Map()))
       }
+    }
+
+    def awaitingStatuses(stillWaiting: Set[ActorRef], currentStats: Map[String, Int]): Receive = {
       case VoteStatusReply(None) =>
         // Citizen hasn't voted yet
         sender() ! VoteStatusRequest // this might end up in an infinite loop
       case VoteStatusReply(Some(candidate)) =>
         val newStillWaiting = stillWaiting - sender()
         val currentVotesOfCandidate = currentStats.getOrElse(candidate, 0)
-        currentStats = currentStats + (candidate -> (currentVotesOfCandidate + 1))
+        val newStats = currentStats + (candidate -> (currentVotesOfCandidate + 1))
         if(newStillWaiting.isEmpty) {
-          println(s"[aggregator] poll stats: $currentStats")
+          println(s"[aggregator] poll stats: $newStats")
         } else {
-          stillWaiting = newStillWaiting
+          context.become(awaitingStatuses(newStillWaiting, newStats))
         }
     }
   }
