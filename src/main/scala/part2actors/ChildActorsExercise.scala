@@ -20,12 +20,11 @@ object ChildActorsExercise extends App {
           context.actorOf(Props[WordCounterWorker], "worker" + n)
         })
       case WordCountTask(text) => {
-        if(lastCount < 10) {
-          lastCount += 1
-        } else if(lastCount == 10) {
+        if(lastCount == 10) {
           lastCount = 0
         }
         val workerRef = context.actorSelection("/user/master/worker" + lastCount)
+        lastCount += 1
         workerRef ! text
       }
       case WordCountReply(count) =>
@@ -59,7 +58,7 @@ object ChildActorsExercise extends App {
   import WordCounterMaster._
   master ! Initialize(10)
   Thread.sleep(1000)
-  (0 to 4).foreach(_ => {
+  (0 to 15).foreach(_ => {
     master ! WordCountTask("akka is awesome for sure")
     Thread.sleep(500)
   })
