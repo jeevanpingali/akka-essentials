@@ -17,16 +17,16 @@ object ChildActorsExercise extends App {
       case Initialize(workerCount) =>
         println(s"${self.path} initializing with count: $workerCount")
         for(n <- 0 until workerCount) yield
-          context.actorOf(Props[WordCounterWorker], "worker" + n)
+          context.actorOf(Props[WordCounterWorker], s"worker$n")
         context.become(wordCountTaskExecution(workerCount, 0))
     }
 
     def wordCountTaskExecution(workerCount: Int, workerIndex: Int): Receive = {
-      case WordCountTask(text) =>
+      case text: String =>
         val index = if(workerCount == workerIndex) 0 else workerIndex
         val workerRef = context.actorSelection(s"/user/master/worker$index")
         context.become(wordCountTaskExecution(workerCount, index + 1))
-        workerRef ! text
+        workerRef ! WordCountTask(text)
       case WordCountReply(count) =>
         println(s"${self.path} words counted: $count")
     }
@@ -35,7 +35,7 @@ object ChildActorsExercise extends App {
   class WordCounterWorker extends Actor {
     import WordCounterMaster._
     override def receive: Receive = {
-      case text =>
+      case WordCountTask(text) =>
         val wordCount = text.toString.split(" ").length
         println(s"${self.path} words of $text counted: $wordCount")
         sender() ! WordCountReply(wordCount)
@@ -57,7 +57,7 @@ object ChildActorsExercise extends App {
   import WordCounterMaster._
   master ! Initialize(5)
   (0 to 1000).foreach(_ => {
-    master ! WordCountTask("akka is awesome for sure")
+    master ! "akka is awesome for sure"
     Thread.sleep(5)
   })
 
