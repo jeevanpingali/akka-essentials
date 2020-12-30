@@ -14,17 +14,19 @@ object ChildActorsExercise extends App {
     import WordCounterMaster._
     var lastCount = 0
     override def receive: Receive = {
-      case Initialize(count) =>
-        println(s"${self.path} initializing with count: $count")
-        (0 until count).foreach(n => {
+      case Initialize(workerCount) =>
+        println(s"${self.path} initializing with count: $workerCount")
+        (0 until workerCount).foreach(n => {
           context.actorOf(Props[WordCounterWorker], "worker" + n)
         })
+        context.become(wordCountTaskExecution(workerCount, 0))
+    }
+
+    def wordCountTaskExecution(workerCount: Int, workerIndex: Int): Receive = {
       case WordCountTask(text) => {
-        if(lastCount == 10) {
-          lastCount = 0
-        }
-        val workerRef = context.actorSelection("/user/master/worker" + lastCount)
-        lastCount += 1
+        val index = if(workerCount == workerIndex) 0 else workerIndex
+        val workerRef = context.actorSelection("/user/master/worker" + index)
+        context.become(wordCountTaskExecution(workerCount, index + 1))
         workerRef ! text
       }
       case WordCountReply(count) =>
