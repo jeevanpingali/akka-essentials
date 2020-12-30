@@ -36,7 +36,7 @@ object ChildActorsExercise extends App {
     import WordCounterMaster._
     override def receive: Receive = {
       case WordCountTask(text) =>
-        val wordCount = text.toString.split(" ").length
+        val wordCount = text.split(" ").length
         println(s"${self.path} words of $text counted: $wordCount")
         sender() ! WordCountReply(wordCount)
     }
