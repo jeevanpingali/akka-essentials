@@ -58,11 +58,10 @@ object ChildActorsExercise extends App {
   val system = ActorSystem("ChildActorsExercise")
   val master = system.actorOf(Props[WordCounterMaster], "master")
   import WordCounterMaster._
-  master ! Initialize(10)
-  Thread.sleep(1000)
+  master ! Initialize(5)
   (0 to 15).foreach(_ => {
+    Thread.sleep(100)
     master ! WordCountTask("akka is awesome for sure")
-    Thread.sleep(500)
   })
 
   system.terminate()
