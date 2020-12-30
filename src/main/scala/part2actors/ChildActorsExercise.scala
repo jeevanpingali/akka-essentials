@@ -1,6 +1,6 @@
 package part2actors
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorSystem, Props}
 
 object ChildActorsExercise extends App {
 
@@ -23,12 +23,11 @@ object ChildActorsExercise extends App {
     }
 
     def wordCountTaskExecution(workerCount: Int, workerIndex: Int): Receive = {
-      case WordCountTask(text) => {
+      case WordCountTask(text) =>
         val index = if(workerCount == workerIndex) 0 else workerIndex
         val workerRef = context.actorSelection("/user/master/worker" + index)
         context.become(wordCountTaskExecution(workerCount, index + 1))
         workerRef ! text
-      }
       case WordCountReply(count) =>
         println(s"${self.path} words counted: $count")
     }
@@ -37,11 +36,10 @@ object ChildActorsExercise extends App {
   class WordCounterWorker extends Actor {
     import WordCounterMaster._
     override def receive: Receive = {
-      case text => {
+      case text =>
         val wordCount = text.toString.split(" ").length
         println(s"${self.path} words of $text counted: $wordCount")
         sender() ! WordCountReply(wordCount)
-      }
     }
   }
 
