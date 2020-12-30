@@ -24,7 +24,7 @@ object ChildActorsExercise extends App {
     def wordCountTaskExecution(workerCount: Int, workerIndex: Int): Receive = {
       case WordCountTask(text) =>
         val index = if(workerCount == workerIndex) 0 else workerIndex
-        val workerRef = context.actorSelection("/user/master/worker" + index)
+        val workerRef = context.actorSelection(s"/user/master/worker$index")
         context.become(wordCountTaskExecution(workerCount, index + 1))
         workerRef ! text
       case WordCountReply(count) =>
