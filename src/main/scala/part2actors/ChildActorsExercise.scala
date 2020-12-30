@@ -25,6 +25,11 @@ object ChildActorsExercise extends App {
     def wordCountTaskExecution(workerCount: Int, workerIndex: Int, currentTaskId: Int, requestMap: Map[Int, ActorRef]): Receive = {
       case Initialize(workerCount) =>
         println("wrong place")
+      case WordCountReply(currentTaskId, count) =>
+        println(s"${self.path} words counted: $count")
+        val originalSender = requestMap.get(currentTaskId)
+//        originalSender ! count
+        context.become(wordCountTaskExecution(workerCount, workerIndex, currentTaskId, requestMap - currentTaskId))
       case text =>
         val originalSender = sender()
         val index = if(workerCount == workerIndex) 0 else workerIndex
@@ -32,11 +37,6 @@ object ChildActorsExercise extends App {
         workerRef ! WordCountTask(currentTaskId, text.toString)
         val newRequestMap = requestMap + (currentTaskId -> originalSender)
         context.become(wordCountTaskExecution(workerCount, index + 1, currentTaskId + 1, newRequestMap))
-      case WordCountReply(currentTaskId, count) =>
-        println(s"${self.path} words counted: $count")
-        val originalSender = requestMap.get(currentTaskId)
-//        originalSender ! count
-        context.become(wordCountTaskExecution(workerCount, workerIndex, currentTaskId, requestMap - currentTaskId))
     }
   }
 
