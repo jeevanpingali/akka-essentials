@@ -16,9 +16,8 @@ object ChildActorsExercise extends App {
     override def receive: Receive = {
       case Initialize(workerCount) =>
         println(s"${self.path} initializing with count: $workerCount")
-        (0 until workerCount).foreach(n => {
+        for(n <- 0 until workerCount) yield
           context.actorOf(Props[WordCounterWorker], "worker" + n)
-        })
         context.become(wordCountTaskExecution(workerCount, 0))
     }
 
