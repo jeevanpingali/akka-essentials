@@ -36,6 +36,24 @@ with BeforeAndAfterAll {
 
       expectMsg(Report(3))
     }
+
+    "aggregate data correctly" in {
+      val master = system.actorOf(Props[Master])
+      val slave = TestProbe("slave")
+      master ! Register(slave.ref)
+      expectMsg(RegistrationAck)
+
+      val workloadString = "I love Akka"
+      master ! Work(workloadString)
+      master ! Work(workloadString)
+
+      // in the mean time I don't have a slave actor
+      slave.receiveWhile() {
+        case SlaveWork(`workloadString`, `testActor`) => slave.reply(WorkCompleted(3, testActor))
+      }
+      expectMsg(Report(3))
+      expectMsg(Report(6))
+    }
   }
 }
 
