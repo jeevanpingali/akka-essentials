@@ -50,7 +50,7 @@ class BasicSpec extends TestKit(ActorSystem("basicspec"))
 
     "reply to a greeting" in {
       labTestActor ! "greeting"
-      expectMsgAnyOf(10 second, "hi", "hello")
+      expectMsgAnyOf(20 second, "hi", "hello")
     }
 
   }
@@ -62,7 +62,22 @@ class BasicSpec extends TestKit(ActorSystem("basicspec"))
       expectMsgAllOf(10 second, "Akka", "Scala")
     }
   }
-}
+
+  "a lab test actor others 2" should {
+    val labTestActor = system.actorOf(Props[LabTestActor])
+    "reply with cool tech in a different way" in {
+      labTestActor ! "favouriteTech"
+      val messages = receiveN(2) // Seq[Any]
+    }
+
+    "reply with cool tech in a fancy way" in {
+      labTestActor ! "favouriteTech"
+      expectMsgPF() {
+        case "Scala" => // only care partial function is defined
+        case "Akka" =>
+      }
+    }
+  }}
 
 object BasicSpec {
   class SimpleActor extends Actor {
