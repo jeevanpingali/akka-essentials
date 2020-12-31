@@ -18,7 +18,7 @@ object IntroAkkaConfig extends App {
   val configString =
     """
       |akka {
-      | loglevel = "ERROR"
+      | loglevel = "INFo"
       |}
       |""".stripMargin
 
@@ -29,4 +29,22 @@ object IntroAkkaConfig extends App {
   actor ! "A Message to remember"
 
   system.terminate()
+
+  /**
+   * Default configuration - application.conf
+   */
+
+  val system2 = ActorSystem("DefaultConfigDemo")
+  val actor2 = system2.actorOf(Props[SimpleLoggingActor])
+  actor2 ! "Remember me"
+  system2.terminate()
+
+  /**
+   * 3 - separate configuraion in same file using multiple namespaces
+   */
+  val specialConfig = ConfigFactory.load().getConfig("mySpecialConfig")
+  val specialConfigSystem = ActorSystem("SpecialConfigDemo", specialConfig)
+  val specialConfigActor = specialConfigSystem.actorOf(Props[SimpleLoggingActor])
+  specialConfigActor ! "Remember me, I'm special"
+  specialConfigSystem.terminate()
 }
