@@ -3,7 +3,8 @@ package part3testing
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
-import part3testing.BasicSpec.{BlackHole, SimpleActor}
+import part3testing.BasicSpec.{BlackHole, LabTestActor, SimpleActor}
+
 import scala.concurrent.duration._
 
 class BasicSpec extends TestKit(ActorSystem("basicspec"))
@@ -34,8 +35,17 @@ class BasicSpec extends TestKit(ActorSystem("basicspec"))
         expectNoMessage(1 second)
       }
     }
-
   }
+
+  // message assertions
+  "a lab test actor" should {
+    val labTestActor = system.actorOf(Props[LabTestActor])
+    "turn a string into upper case" in {
+      labTestActor ! "i love akka"
+      expectMsg("I LOVE AKKA")
+    }
+  }
+
 }
 
 object BasicSpec {
@@ -47,5 +57,11 @@ object BasicSpec {
 
   class BlackHole extends Actor {
     override def receive: Receive = Actor.emptyBehavior
+  }
+
+  class LabTestActor extends Actor {
+    override def receive: Receive = {
+      case message: String => sender() ! message.toUpperCase
+    }
   }
 }
