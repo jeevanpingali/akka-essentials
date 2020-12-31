@@ -39,10 +39,10 @@ object TimedAssertionsSpec {
 
       case "workSequence" =>
         val r = new Random()
-        for(i <- 1 to 10) {
+        (1 to 10).foreach(_ => {
           Thread.sleep(r.nextInt(50))
           sender() ! WorkResult(1)
-        }
+        })
     }
   }
 }
