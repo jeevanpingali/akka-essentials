@@ -1,7 +1,7 @@
 package part4faulttollerance
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import part4faulttollerance.StrtingStoppingActors.Parent.{StartChild, StopChild, Stop}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Kill, PoisonPill, Props, Terminated}
+import part4faulttollerance.StrtingStoppingActors.Parent.{StartChild, Stop, StopChild}
 
 object StrtingStoppingActors extends App {
   val system = ActorSystem("StoppingActorsDemo")
@@ -40,6 +40,9 @@ object StrtingStoppingActors extends App {
     }
   }
 
+  /**
+   * Method 1: context.stop
+   */
   val parent = system.actorOf(Props[Parent], "parent")
   parent ! StartChild("child1")
   val child = system.actorSelection("/user/parent/child1")
@@ -52,6 +55,7 @@ object StrtingStoppingActors extends App {
   )
 */
 
+/*
   parent ! StartChild("child2")
   val child2 = system.actorSelection("/user/parent/child2")
   child2 ! "Hi second child"
@@ -63,5 +67,53 @@ object StrtingStoppingActors extends App {
   (0 to 100).foreach(num =>
     child2 ! s"[${num}] second child, are you still there"
   )
+*/
+
+  /**
+   * Method 2: PoisonPill
+   */
+
+/*
+  val looseActror = system.actorOf(Props[Child])
+  looseActror ! "Hello loose actor"
+  looseActror ! PoisonPill
+  looseActror ! "Are you still there"
+*/
+
+  /**
+   * Method 3: Kill
+   */
+
+/*
+  val abruptlyTerminatedActor = system.actorOf(Props[Child])
+  abruptlyTerminatedActor ! "You are about to be terminated"
+  abruptlyTerminatedActor ! Kill
+  abruptlyTerminatedActor ! "you have been terminated"
+
+*/
+  /**
+   * Death Watcher
+   */
+
+  class Watcher extends Actor with ActorLogging {
+    import Parent._
+    override def receive: Receive = {
+      case StartChild(name) =>
+        val child = context.actorOf(Props[Child], name)
+        log.info(s"Started and watching child $name")
+        context.watch(child)
+      case Terminated(actorRef) =>
+        log.info(s"The reference $actorRef I'm watching has been stopped")
+    }
+  }
+
+  val watcher = system.actorOf(Props[Watcher], "watcher")
+  watcher ! StartChild("watchedChild")
+  val watchedChild = system.actorSelection("/user/watcher/watchedChild")
+  watchedChild ! "Hi watched child"
+  Thread.sleep(500)
+  watchedChild ! PoisonPill
+
+  Thread.sleep(5 * 1000)
   system.terminate()
 }
