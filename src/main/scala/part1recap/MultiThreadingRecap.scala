@@ -32,6 +32,7 @@ object MultiThreadingRecap extends App {
   // callbacks
   future.onComplete {
     case Success(42) => println("I found the meaning of life")
+    case Success(_) => println("Something happened with the meaning of life!")
     case Failure(_) => println("Something happened with the meaning of life!")
   }
 

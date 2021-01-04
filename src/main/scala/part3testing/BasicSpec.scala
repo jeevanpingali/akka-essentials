@@ -94,7 +94,7 @@ object BasicSpec {
     val random = new Random()
     override def receive: Receive = {
       case "greeting" => {
-        if(random.nextBoolean()) sender() ! "hi" else "hello"
+        if(random.nextBoolean()) sender() ! "hi" else sender() ! "hello"
       }
       case "favouriteTech" => {
         sender() ! "Scala"
