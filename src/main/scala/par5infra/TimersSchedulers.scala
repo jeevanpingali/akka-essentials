@@ -15,7 +15,7 @@ object TimersSchedulers extends App {
 
   system.log.info("Scheduling reminder for simple actor")
 
-  implicit val executionContext = system.dispatcher
+  import system.dispatcher
 
   system.scheduler.scheduleOnce(2 second) {
     simpleActor ! "Reminder"
