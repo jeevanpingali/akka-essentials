@@ -21,6 +21,10 @@ object TimersSchedulers extends App {
     simpleActor ! "Reminder"
   }
 
-  Thread.sleep(5 * 1000)
+  val routine = system.scheduler.schedule(1 second, 2 seconds) {
+    simpleActor ! "Heartbeat"
+  }
+
+  Thread.sleep(10 * 1000)
   system.terminate()
 }
