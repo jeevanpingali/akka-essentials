@@ -93,8 +93,6 @@ object Routers extends App {
    */
   groupMaster2 ! Broadcast("hello, everyone")
 
-
-
   import system.dispatcher
 
   system.scheduler.scheduleOnce(10 seconds) {
