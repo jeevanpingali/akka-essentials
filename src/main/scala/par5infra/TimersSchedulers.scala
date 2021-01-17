@@ -1,6 +1,7 @@
 package par5infra
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Cancellable, Props}
+
 import scala.concurrent.duration._
 
 object TimersSchedulers extends App {
@@ -21,10 +22,17 @@ object TimersSchedulers extends App {
     simpleActor ! "Reminder"
   }
 
-  val routine = system.scheduler.schedule(1 second, 2 seconds) {
+  val routine:Cancellable  = system.scheduler.schedule(1 second, 2 seconds) {
     simpleActor ! "Heartbeat"
   }
 
-  Thread.sleep(10 * 1000)
-  system.terminate()
+  system.scheduler.scheduleOnce(5 seconds) {
+    system.log.info("Cancelling heartbeat")
+    routine.cancel()
+  }
+
+  system.scheduler.scheduleOnce(15 seconds) {
+    system.log.info("terminating actor system")
+    system.terminate()
+  }
 }
