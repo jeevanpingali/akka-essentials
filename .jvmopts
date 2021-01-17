@@ -1,4 +1,4 @@
--Xms2g
--Xmx2g
+-Xms1g
+-Xmx1g
 -XX:+CMSClassUnloadingEnabled
 XX:MaxPermSize=512m
